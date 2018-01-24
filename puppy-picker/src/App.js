@@ -9,37 +9,68 @@ class App extends Component {
   state = {
     selectorDropdown:[],
     selectedDogs:[],
-    whereMyDogsAt: [],
     dogPictures:[]
   }
 
   handleChange = (dog, index) => {
-    // console.log(dog.label);
     fetch(`https://dog.ceo/api/breed/${dog.value}/images`).then(
       (results) => {
         return results.json()
       }).then(
         (data) => {
-          // console.log(data.message[0]);
           let picture = data.message[0];
           let dogPictures = []
           let dogHash = {}
           dogHash = {dog:dog.value, picture:picture}
-          dogPictures = [...this.state.dogPictures,dogHash];
-          this.setState({
-            dogPictures:dogPictures
-          })
-          // console.log(dogPictures);
-          const selectedDogs = this.state.dogPictures.map(
+          dogPictures = [dogHash,...this.state.dogPictures];
+          const selectedDogs = [dogPictures.map(
             (dogObject, index) => {
               return(
                 <Dog
                 name={dogObject.dog}
                 picture={dogObject.picture}
+                clicked={() => this.deleteHandler(index)}
                 key={index}/>
               )
             }
-          )
+          ),...this.state.selectedDogs]
+          this.setState({selectedDogs:selectedDogs})
+        })
+      }
+
+      deleteHandler = (dogIndex) => {
+        console.log(dogIndex);
+        const dogs = [...this.state.selectedDogs];
+        dogs.splice(dogIndex, 1);
+        console.log(dogs);
+        this.setState({selectedDogs: dogs});
+      }
+
+      randomBreedGenerator = () => {
+        console.log('random dog')
+        const randomDogs = [...this.state.selectorDropdown]
+        let aRandomDog = Math.floor(Math.random()*randomDogs.length)
+        aRandomDog = randomDogs[aRandomDog].value
+        console.log(aRandomDog)
+        fetch(`https://dog.ceo/api/breed/${aRandomDog}/images`).then((results) => {
+          return results.json();
+        }).then((data) => {
+          let picture = data.message[0]
+          console.log(picture)
+          let dogPictures = []
+          let dogHash = {}
+          dogHash = {dog:aRandomDog, picture:picture}
+          console.log(dogHash);
+          dogPictures = [dogHash,...this.state.dogPictures];
+          const selectedDogs = [dogPictures.map( (dogObject, index) => {
+            return (
+              <Dog
+              name={dogObject.dog}
+              picture={dogObject.picture}
+              clicked={() => this.deleteHandler(index)}
+              key={index}/>
+            )
+          }),...this.state.selectedDogs]
           this.setState({selectedDogs:selectedDogs})
         })
       }
@@ -49,7 +80,6 @@ class App extends Component {
         fetch('https://dog.ceo/api/breeds/list').then((results) => {
           return results.json();
         }).then((data) => {
-          // console.log(data.message);
           let allBreedArray = data.message;
           let allBreedObject = {};
           for (let i=0; i<allBreedArray.length; i++){
@@ -58,10 +88,7 @@ class App extends Component {
           let newBreedArray = [];
           newBreedArray=Object.entries(allBreedObject);
           let selectorDropdown = newBreedArray.map((dog) => ({value:dog[1],label:dog[1]}))
-          // console.log(newBreedArray);
-          // console.log(selectorDropdown[0]);
           this.setState({selectorDropdown:selectorDropdown});
-          // console.log(this.state.selectorDropdown);
         })
       }
       render() {
@@ -69,11 +96,19 @@ class App extends Component {
         const value = selectedOption && selectedOption.value;
         return (
           <div className="App">
+          <h1>Dog Catcher</h1>
           <Select
           options={this.state.selectorDropdown}
           value={value}
           onChange={this.handleChange}
           />
+          <h3>Caught Breeds</h3>
+          <button
+          onClick={() => this.randomBreedGenerator()}
+          className="randombutton"
+          >
+            Catch a Random Breed
+          </button>
           {this.state.selectedDogs}
           </div>
         );

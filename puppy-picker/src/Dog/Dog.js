@@ -8,6 +8,10 @@ const dog = (props) => {
       <div className="dogpiccontainer">
         <img src={props.picture} alt={props.name} className="dogpic"/>
       </div>
+      <button
+      onClick = {props.clicked}>
+        Delete this dog{props.id}
+      </button>
     </div>
   )
 }
